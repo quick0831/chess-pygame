@@ -155,10 +155,6 @@ while True:
 
     # Draw the pieces
     Board.draw(screen)
-
-    #pygame.draw.rect(screen, DARK_RED, (3*piece_size + board_offset[0], 6*piece_size + board_offset[1], piece_size+1, piece_size+1))
-    #screen.blit(pieces[0][0], (3*piece_size + board_offset[0], 6*piece_size + board_offset[1]))
-    #pygame.draw.rect(screen, BRIGHT_RED, (4*piece_size + board_offset[0], 6*piece_size + board_offset[1], piece_size+1, piece_size+1))
-    #screen.blit(pieces[1][0], (4*piece_size + board_offset[0], 6*piece_size + board_offset[1]))
+    
     clk.tick(FPS)
     pygame.display.update()
