@@ -27,11 +27,13 @@ def main(piece_size):
     piece_size = int(piece_size)
     pieces = [[0]*7]*2
     for i in range(2):
+        p = []
         for j in range(6):
-            pieces[i][j] = pygame.transform.smoothscale(img.subsurface((j*200, i*200, 200, 200)), (piece_size, piece_size))
+            p.append(pygame.transform.smoothscale(img.subsurface((j*200, i*200, 200, 200)), (piece_size, piece_size)))
         
         s = pygame.Surface((piece_size, piece_size))
         s.set_colorkey((0,0,0))
-        pieces[i][Piece.EMPTY] = s
+        p.append(s)
+        pieces[i] = p
     
     return pieces
