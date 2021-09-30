@@ -50,23 +50,36 @@ class Space(pygame.sprite.Sprite):
             piece_to = (int(px), int(py)) if px<8 and py<8 and px>=0 and py>=0 else None
             board_update((self.x, self.y), piece_to)
 
-def get_piece(piece):
-    return board_state[piece[0]][piece[1]]
+def get_piece(space):
+    return board_state[space[0]][space[1]]
 
-def set_piece(piece, state):
-    board_state[piece[0]][piece[1]] = copy(state)
+def set_piece(space, state):
+    board_state[space[0]][space[1]] = copy(state)
 
-def move_piece(piece_from, piece_to):
-    set_piece(piece_to, get_piece(piece_from))
+def move_piece(space_from, space_to):
+    set_piece(space_to, get_piece(space_from))
 
-def board_update(piece_from, piece_to):
+def board_update(space_from, space_to):
     global check_space, last_move
-    if piece_to:
-        move_valid = True
+    if space_to:
+        move_valid = False
+        piece = get_piece(space_from).piece
+        if piece == Piece.PAWN:
+            move_valid = True
+        if piece == Piece.KNIGHT:
+            move_valid = True
+        if piece == Piece.BISHOP:
+            move_valid = True
+        if piece == Piece.ROOK:
+            move_valid = True
+        if piece == Piece.QUEEN:
+            move_valid = True
+        if piece == Piece.KING:
+            move_valid = True
         if move_valid:
-            last_move = [piece_from, piece_to]
-            move_piece(piece_from, piece_to)
-            set_piece(piece_from, State(Piece.EMPTY, Color.WHITE))
+            last_move = [space_from, space_to]
+            move_piece(space_from, space_to)
+            set_piece(space_from, State(Piece.EMPTY, Color.WHITE))
             for space in Board:
                 space.update()
     else:
