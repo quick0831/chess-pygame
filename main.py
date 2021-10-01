@@ -38,16 +38,16 @@ class Space(pygame.sprite.Sprite):
         s = board_state[self.x][self.y]
         self.image = pieces[s.color][s.piece]
         self.rect = self.image.get_rect()
-        self.rect.x = self.x*piece_size + board_offset[0]
-        self.rect.y = self.y*piece_size + board_offset[1]
+        self.rect.x =    self.x *piece_size + board_offset[0]
+        self.rect.y = (7-self.y)*piece_size + board_offset[1]
 
     def mouse_drop(self, mouse_pos):
-        self.rect.x = self.x*piece_size + board_offset[0]
-        self.rect.y = self.y*piece_size + board_offset[1]
+        self.rect.x =    self.x *piece_size + board_offset[0]
+        self.rect.y = (7-self.y)*piece_size + board_offset[1]
         if board_state[self.x][self.y].piece != Piece.EMPTY:
             px = (mouse_pos[0] - board_offset[0]) // piece_size
             py = (mouse_pos[1] - board_offset[1]) // piece_size
-            piece_to = (int(px), int(py)) if px<8 and py<8 and px>=0 and py>=0 else None
+            piece_to = (int(px), int(7-py)) if px<8 and py<8 and px>=0 and py>=0 else None
             board_update((self.x, self.y), piece_to)
 
 def get_piece(space):
@@ -149,10 +149,10 @@ board_state = [[State(Piece.EMPTY, Color.WHITE) for _ in range(8)] for _ in rang
 
 init_board_row = (Piece.ROOK,Piece.KNIGHT,Piece.BISHOP,Piece.QUEEN,Piece.KING,Piece.BISHOP,Piece.KNIGHT,Piece.ROOK)
 for i, p in enumerate(init_board_row):
-    board_state[i][0] = State(p, Color.BLACK)
-    board_state[i][1] = State(Piece.PAWN, Color.BLACK)
-    board_state[i][6] = State(Piece.PAWN, Color.WHITE)
-    board_state[i][7] = State(p, Color.WHITE)
+    board_state[i][7] = State(p, Color.BLACK)
+    board_state[i][6] = State(Piece.PAWN, Color.BLACK)
+    board_state[i][1] = State(Piece.PAWN, Color.WHITE)
+    board_state[i][0] = State(p, Color.WHITE)
 
 Board = pygame.sprite.Group()
 for i in range(8):
@@ -212,13 +212,13 @@ while True:
     # Draw The Red Checked space
     if check_space:
         x, y = check_space
-        pygame.draw.rect(screen, DARK_RED if (x+y)%2==1 else BRIGHT_RED, (x*piece_size + board_offset[0], y*piece_size + board_offset[1], piece_size+1, piece_size+1))
+        pygame.draw.rect(screen, DARK_RED if (x+y)%2==0 else BRIGHT_RED, (x*piece_size + board_offset[0], (7-y)*piece_size + board_offset[1], piece_size+1, piece_size+1))
 
     # Draw Last Move Indicator
     for pos in last_move:
         if pos:
             x, y = pos
-            draw_rect_alpha(screen, DARKER, (int((x+0.1)*piece_size + board_offset[0]), int((y+0.1)*piece_size + board_offset[1]), int(piece_size*0.8), int(piece_size*0.8)), border_radius=int(piece_size*0.2))
+            draw_rect_alpha(screen, DARKER, (int((x+0.1)*piece_size + board_offset[0]), int((7-y+0.1)*piece_size + board_offset[1]), int(piece_size*0.8), int(piece_size*0.8)), border_radius=int(piece_size*0.2))
 
     # Draw the pieces
     Board.draw(screen)
