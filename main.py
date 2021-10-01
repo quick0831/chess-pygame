@@ -93,7 +93,7 @@ def move_valid_pawn(x1, y1, x2, y2):
     return True
 
 def move_valid_knight(x1, y1, x2, y2):
-    return True
+    return (abs(x1-x2), abs(y1-y2)) in ((1,2),(2,1))
 
 def move_valid_bishop(x1, y1, x2, y2):
     if x1 - x2 == y1 - y2: # Top-Left to Bottom-Right Diagonal
