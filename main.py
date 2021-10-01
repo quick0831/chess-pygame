@@ -163,7 +163,7 @@ for i in range(8):
 mouse_down = False
 mouse_offset = [0, 0]
 mouse_drag_obj = None
-# Use coordinate Eg. (0, 2) = a6
+# Use coordinate Eg. (0, 2) = a3
 check_space = None
 last_move = [None, None]
 
