@@ -62,21 +62,10 @@ def move_piece(space_from, space_to):
 def board_update(space_from, space_to):
     global check_space, last_move
     if space_to:
-        move_valid = False
-        piece = get_piece(space_from).piece
-        if piece == Piece.PAWN:
-            move_valid = True
-        if piece == Piece.KNIGHT:
-            move_valid = True
-        if piece == Piece.BISHOP:
-            move_valid = True
-        if piece == Piece.ROOK:
-            move_valid = True
-        if piece == Piece.QUEEN:
-            move_valid = True
-        if piece == Piece.KING:
-            move_valid = True
-        if move_valid:
+        # Check if not moved at all (prevent unsafe type)
+        if space_from[0] == space_to[0] and space_from[1] == space_to[1]:
+            pass
+        elif move_valid(space_from, space_to):
             last_move = [space_from, space_to]
             move_piece(space_from, space_to)
             set_piece(space_from, State(Piece.EMPTY, Color.WHITE))
@@ -84,6 +73,71 @@ def board_update(space_from, space_to):
                 space.update()
     else:
         check_space = None
+
+def move_valid(space_from, space_to):
+    piece_from = get_piece(space_from)
+    piece_to = get_piece(space_to)
+    if piece_from.color == piece_to.color and piece_to.piece != Piece.EMPTY:
+        return False # Taking Own Piece
+    
+    return {
+        Piece.PAWN   : move_valid_pawn,
+        Piece.KNIGHT : move_valid_knight,
+        Piece.BISHOP : move_valid_bishop,
+        Piece.ROOK   : move_valid_rook,
+        Piece.QUEEN  : move_valid_queen,
+        Piece.KING   : move_valid_king
+    }[piece_from.piece](*space_from, *space_to)
+
+def move_valid_pawn(x1, y1, x2, y2):
+    return True
+
+def move_valid_knight(x1, y1, x2, y2):
+    return True
+
+def move_valid_bishop(x1, y1, x2, y2):
+    if x1 - x2 == y1 - y2: # Top-Left to Bottom-Right Diagonal
+        for i, j in zip(range(x1+1, x2), range(y1+1, y2)):
+            if get_piece((i, j)).piece != Piece.EMPTY:
+                return False
+        for i, j in zip(range(x2+1, x1), range(y2+1, y1)):
+            if get_piece((i, j)).piece != Piece.EMPTY:
+                return False
+        return True
+    if x1 - x2 == y2 - y1: # Top-Right to Bottom-Left Diagonal
+        for i, j in zip(range(x1+1, x2), range(y1-1, y2, -1)):
+            if get_piece((i, j)).piece != Piece.EMPTY:
+                return False
+        for i, j in zip(range(x2+1, x1), range(y2-1, y1, -1)):
+            if get_piece((i, j)).piece != Piece.EMPTY:
+                return False
+        return True
+    return False
+
+def move_valid_rook(x1, y1, x2, y2):
+    if x1 == x2:
+        for i in range(y1 + 1, y2):
+            if get_piece((x1, i)).piece != Piece.EMPTY:
+                return False
+        for i in range(y2 + 1, y1):
+            if get_piece((x1, i)).piece != Piece.EMPTY:
+                return False
+        return True
+    if y1 == y2:
+        for i in range(x1 + 1, x2):
+            if get_piece((i, y1)).piece != Piece.EMPTY:
+                return False
+        for i in range(x2 + 1, x1):
+            if get_piece((i, y1)).piece != Piece.EMPTY:
+                return False
+        return True
+    return False
+
+def move_valid_queen(*param):
+    return move_valid_rook(*param) or move_valid_bishop(*param)
+
+def move_valid_king(x1, y1, x2, y2):
+    return True
 
 # Replace pygame.draw.rect For transparent display
 def draw_rect_alpha(surface, color, rect, border_radius=0):
@@ -168,6 +222,9 @@ while True:
 
     # Draw the pieces
     Board.draw(screen)
+    # Top the dragged piece by redrawing
+    if mouse_drag_obj:
+        screen.blit(mouse_drag_obj.image, mouse_drag_obj.rect)
     
     clk.tick(FPS)
     pygame.display.update()
