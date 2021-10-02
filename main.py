@@ -74,6 +74,11 @@ def board_update(space_from, space_to):
             remove_piece(space_from)
             for space in Board:
                 space.update()
+            if get_piece(space_to).piece == Piece.PAWN and space_to[1] in (0, 7):
+                # Promote
+                promote(space_to)
+                for space in Board:
+                    space.update()
     else:
         check_space = None
 
@@ -178,6 +183,12 @@ def move_valid_queen(*param):
 def move_valid_king(x1, y1, x2, y2):
     return True
 
+def promote(space):
+    global promoting, promote_color, promote_space
+    promoting = True
+    promote_color = get_piece(space).color
+    promote_space = space
+
 def flip_board():
     global board_side, board_state, check_space, last_move
     board_state = copy([board_state[7-i][::-1] for i in range(8)])
@@ -220,6 +231,11 @@ check_space = None
 last_move = [None, None]
 en_passant_ok = False
 
+# Promote screen
+promoting = False
+promote_color = Color.WHITE
+promote_space = (0, 0)
+
 while True:
     # ====  Event Loop ====
     for event in pygame.event.get():
@@ -237,18 +253,39 @@ while True:
         if event.type == MOUSEBUTTONDOWN:
             mouse_down = True
             # 1=Left 2=Middle 3=Right 4=Up Scroll 5=Down Scroll
-            if event.button == 1:
-                for space in Board:
-                    if space.rect.collidepoint(event.pos):
-                        #mouse_offset[0] = space.rect.x - event.pos[0]
-                        #mouse_offset[1] = space.rect.y - event.pos[1]
-                        mouse_offset[0]=mouse_offset[1]=-piece_size//2
-                        mouse_drag_obj = space
+            if not promoting:
+                if event.button == 1:
+                    for space in Board:
+                        if space.rect.collidepoint(event.pos):
+                            #mouse_offset[0] = space.rect.x - event.pos[0]
+                            #mouse_offset[1] = space.rect.y - event.pos[1]
+                            mouse_offset[0]=mouse_offset[1]=-piece_size//2
+                            mouse_drag_obj = space
         if event.type == MOUSEBUTTONUP:
-            if mouse_drag_obj:
-                mouse_drag_obj.mouse_drop(event.pos)
-            mouse_down = False
-            mouse_drag_obj = None
+            if promoting:
+                if event.button == 1:
+                    in_region = lambda x,y,x1,y1,x2,y2: x1<x and x<x2 and y1<y and y<y2
+                    calc_pos_1 = lambda x,y: (x*piece_size+board_offset[0], y*piece_size+board_offset[1])
+                    calc_pos = lambda x,y: (*calc_pos_1(x, y), *calc_pos_1(x+1, y+1))
+                    piece = None
+                    if in_region(*event.pos, *calc_pos(3, 3)):
+                        piece = Piece.QUEEN
+                    if in_region(*event.pos, *calc_pos(3, 4)):
+                        piece = Piece.KNIGHT
+                    if in_region(*event.pos, *calc_pos(4, 3)):
+                        piece = Piece.ROOK
+                    if in_region(*event.pos, *calc_pos(4, 4)):
+                        piece = Piece.BISHOP
+                    if piece:
+                        set_piece(promote_space, State(piece, promote_color))
+                        promoting = False
+                        for space in Board:
+                            space.update()
+            else:
+                if mouse_drag_obj:
+                    mouse_drag_obj.mouse_drop(event.pos)
+                mouse_down = False
+                mouse_drag_obj = None
         if event.type == MOUSEMOTION:
             if mouse_down:
                 if mouse_drag_obj:
@@ -279,5 +316,11 @@ while True:
     if mouse_drag_obj:
         screen.blit(mouse_drag_obj.image, mouse_drag_obj.rect)
     
+    if promoting:
+        draw_rect_alpha(screen, DARKER, (*board_offset, piece_size*8, piece_size*8))
+        pygame.draw.rect(screen, BRIGHT, (int(3.05*piece_size + board_offset[0]), int(3.05*piece_size + board_offset[1]), int(piece_size*1.9), int(piece_size*1.9)), border_radius=int(piece_size*0.1))
+        for p,i,j in ((Piece.QUEEN,3,3), (Piece.KNIGHT,3,4), (Piece.ROOK,4,3), (Piece.BISHOP,4,4)):
+            screen.blit(pieces[0][p], (i*piece_size + board_offset[0], j*piece_size + board_offset[1]))
+
     clk.tick(FPS)
     pygame.display.update()
